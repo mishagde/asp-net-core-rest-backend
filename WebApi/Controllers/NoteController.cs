@@ -29,6 +29,11 @@ public class NoteController : ControllerBase
                 Value = x.Value
             }).ToArray();
 
+    [Route("count")]
+    [HttpGet]
+    public int Count() =>
+        _noteService.Count();
+
     [Route("{key}")]
     [HttpGet]
     public string Get(int key) =>

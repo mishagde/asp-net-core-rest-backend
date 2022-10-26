@@ -14,6 +14,9 @@ public class NoteService
         _context.Database.EnsureCreated();
     }
 
+    public int Count() =>
+        _context.Notes.Count();
+
     public Note[] GetAllNotes(NoteParameters? parameters)
     {
         var notes = _context.Notes.AsQueryable();
