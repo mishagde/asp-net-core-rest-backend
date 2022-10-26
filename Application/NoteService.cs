@@ -1,49 +1,80 @@
 ﻿using Application.Database;
 using Application.Database.Tables;
+using Application.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application;
 
 public class NoteService
 {
-    private readonly ApplicationContext context = new ApplicationContext();
-    
+    private readonly ApplicationContext _context = new ApplicationContext();
+
     public NoteService()
     {
-        context.Database.EnsureCreated();
+        _context.Database.EnsureCreated();
     }
 
-    public Note[] GetAllNotes()
+    public Note[] GetAllNotes(NoteParameters? parameters)
     {
-        return context.Notes.ToArray();
+        var notes = _context.Notes.AsQueryable();
+
+        if (parameters == null)
+            return notes.ToArray();
+        
+        if (parameters.MinId.HasValue)
+            notes = notes.Where(x => x.Id >= parameters.MinId);
+        if (parameters.MaxId.HasValue)
+            notes = notes.Where(x => x.Id <= parameters.MaxId);
+        
+        if (parameters.MinKey.HasValue)
+            notes = notes.Where(x => x.Key >= parameters.MinKey);
+        if (parameters.MaxKey.HasValue)
+            notes = notes.Where(x => x.Key <= parameters.MaxKey);
+
+        if (parameters.FromEnd.HasValue)
+            notes = notes.OrderByDescending(x=>x.Id);
+
+        if (parameters.Count.HasValue)
+        {
+            if (parameters.Page.HasValue)
+                notes = notes
+                    .Skip((parameters.Page.Value - 1) * parameters.Count.Value)
+                    .Take(parameters.Count.Value);
+            else
+                notes = notes.Take(parameters.Count.Value);
+        }
+
+        return notes.ToArray();
     }
 
     public bool TryGetNoteByKey(int key, out Note? note)
     {
-        note = (from n in context.Notes
-                where key == n.Key
-                    select n).SingleOrDefault();
+        note = (from n in _context.Notes
+            where key == n.Key
+            select n).SingleOrDefault();
 
         return note != null;
     }
 
     public void ClearTable()
     {
-        context.Database.ExecuteSqlRaw("DELETE FROM Notes");
+        _context.Database.ExecuteSqlRaw("DELETE FROM Notes");
+        _context.Database.ExecuteSqlRaw("UPDATE SQLITE_SEQUENCE SET seq = 0 WHERE name = 'Notes'");
     }
 
     public bool TryPutNote(Note note)
     {
         try
         {
-            context.Notes.Add(note);
-            context.SaveChanges();
+            _context.Notes.Add(note);
+            _context.SaveChanges();
             return true;
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
+
         return false;
     }
 
@@ -52,14 +83,15 @@ public class NoteService
         try
         {
             foreach (var note in notes)
-                context.Notes.Add(note);
-            context.SaveChanges();
+                _context.Notes.Add(note);
+            _context.SaveChanges();
             return true;
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
+
         return false;
     }
 }

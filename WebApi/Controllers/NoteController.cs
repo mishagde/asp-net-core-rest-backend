@@ -1,5 +1,6 @@
 using Application;
 using Application.Database.Tables;
+using Application.Models;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Controllers.Models;
 
@@ -19,13 +20,14 @@ public class NoteController : ControllerBase
 
     [Route("")]
     [HttpGet]
-    public NoteModel[] Get() => _noteService.GetAllNotes().Select(x =>
-        new NoteModel
-        {
-            Id = x.Id,
-            Key = x.Key,
-            Value = x.Value
-        }).ToArray();
+    public NoteModel[] Get([FromQuery] NoteParameters? parameters) =>
+        _noteService.GetAllNotes(parameters).Select(x =>
+            new NoteModel
+            {
+                Id = x.Id,
+                Key = x.Key,
+                Value = x.Value
+            }).ToArray();
 
     [Route("{key}")]
     [HttpGet]
