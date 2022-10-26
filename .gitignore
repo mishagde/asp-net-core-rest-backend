@@ -5,3 +5,6 @@ x64/
 [Oo]bj/
 *.dll
 *.pdb
+*.db
+*.db-shm
+*.db-wal
