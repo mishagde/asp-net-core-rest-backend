@@ -1,6 +1,7 @@
 using Application;
 using Application.Database.Tables;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.Controllers.Models;
 
 namespace WebApi.Controllers;
 
@@ -8,29 +9,47 @@ namespace WebApi.Controllers;
 [Route("[controller]")]
 public class NoteController : ControllerBase
 {
-    private readonly ILogger<NoteController> _logger;
     private readonly NoteService _noteService;
 
-    public NoteController(ILogger<NoteController> logger,
+    public NoteController(
         NoteService noteService)
     {
-        _logger = logger;
         _noteService = noteService;
     }
 
-    [Route("get")]
+    [Route("")]
     [HttpGet]
-    public Note[] Get() => _noteService.GetAllNotes();
+    public NoteModel[] Get() => _noteService.GetAllNotes().Select(x =>
+        new NoteModel
+        {
+            Id = x.Id,
+            Key = x.Key,
+            Value = x.Value
+        }).ToArray();
 
-    [Route("get/{key}")]
+    [Route("{key}")]
     [HttpGet]
     public string Get(int key) =>
         _noteService.TryGetNoteByKey(key, out var note) ? note!.Value : "Запись не найдена";
 
-    [Route("put")]
-    [HttpPost]
-    public string Put(Note note) =>
-        _noteService.TryPutNote(note)
+    [Route("clear")]
+    [HttpGet]
+    public void Clear() =>
+        _noteService.ClearTable();
+
+    [Route("")]
+    [HttpPut]
+    public string Put([FromBody] Dictionary<int, string>[] json)
+    {
+        var notes = json.Select(x =>
+            new Note
+            {
+                Key = x.Single().Key,
+                Value = x.Single().Value
+            });
+
+        return _noteService.TryPutNotes(notes)
             ? "Всё ок"
             : "Рыцарь, тебя постигла неудача, но ты попробуй еще раз.";
+    }
 }
