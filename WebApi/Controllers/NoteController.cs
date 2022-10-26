@@ -11,7 +11,7 @@ public class NoteController : ControllerBase
     private readonly ILogger<NoteController> _logger;
     private readonly NoteService _noteService;
 
-    public NoteController(ILogger<NoteController> logger, 
+    public NoteController(ILogger<NoteController> logger,
         NoteService noteService)
     {
         _logger = logger;
@@ -20,28 +20,17 @@ public class NoteController : ControllerBase
 
     [Route("get")]
     [HttpGet]
-    public Note[] Get()
-    {
-        return _noteService.GetAllNotes();
-    }
+    public Note[] Get() => _noteService.GetAllNotes();
 
     [Route("get/{key}")]
     [HttpGet]
-    public string Get(int key)
-    {
-        if (!_noteService.TryGetNoteByKey(key, out var note))
-            return "Запись не найдена";
-
-        return note.Value;
-    }
+    public string Get(int key) =>
+        _noteService.TryGetNoteByKey(key, out var note) ? note!.Value : "Запись не найдена";
 
     [Route("put")]
     [HttpPost]
-    public string Put(Note note)
-    {
-        if (!_noteService.TryPutNote(note))
-            return "Рыцарь, тебя постигла неудача, но ты попробуй еще раз.";
-
-        return "Всё ок";
-    }
+    public string Put(Note note) =>
+        _noteService.TryPutNote(note)
+            ? "Всё ок"
+            : "Рыцарь, тебя постигла неудача, но ты попробуй еще раз.";
 }
