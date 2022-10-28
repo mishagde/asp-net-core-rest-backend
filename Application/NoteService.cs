@@ -39,9 +39,9 @@ public class NoteService
 
         if (parameters.Count.HasValue)
         {
-            if (parameters.Page.HasValue)
+            if (parameters.Skip.HasValue)
                 notes = notes
-                    .Skip((parameters.Page.Value - 1) * parameters.Count.Value)
+                    .Skip(parameters.Skip.Value)
                     .Take(parameters.Count.Value);
             else
                 notes = notes.Take(parameters.Count.Value);
